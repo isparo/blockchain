@@ -62,5 +62,16 @@ contract SimpleDropbox {
 
         emit FileUploaded(fileCount, _fileHash, _fileSize, _fileType, _fileName, _fileDescription, block.timestamp, payable(msg.sender));
     }
+
+    function listFiles() public view returns (File[] memory) {
+        uint count = getFileCount();
+        File[] memory allFiles = new File[](count);
+
+        for (uint i = 1; i <= count; i++) {
+            allFiles[i - 1] = files[i];
+        }
+
+        return allFiles;
+    }
     
 }
