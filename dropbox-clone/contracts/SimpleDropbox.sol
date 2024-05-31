@@ -6,7 +6,7 @@ contract SimpleDropbox {
     uint public fileCount = 0;
     mapping (uint => File) public files;
 
-    constructor() public {}
+    constructor() {}
 
     struct File {
         uint fileId;
