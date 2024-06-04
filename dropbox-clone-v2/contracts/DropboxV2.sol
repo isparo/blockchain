@@ -56,17 +56,15 @@ contract DropboxV2 {
         bytes32 r, 
         bytes32 s) public {
 
-        // obtiene la direccion de la firma
-        bytes32 messageHash = keccak256(abi.encodePacked(_fileHash, _fileSize, _fileType, _fileName, _fileDescription));
-        address uploader = ecrecover(messageHash, v, r, s);
-        require(uploader != address(0), "Invalid signature");
+        // Verify the signature
+        address uploader = verifySignature(_fileHash, v, r, s);
 
         // validate incomming data
         require(bytes(_fileHash).length > 0);
         require(bytes(_fileType).length > 0);
         require(bytes(_fileDescription).length > 0);
         require(bytes(_fileName).length > 0);
-        require(msg.sender!=address(0));
+        //require(msg.sender!=address(0));
         require(_fileSize>0);
 
         fileCount++;
@@ -77,10 +75,21 @@ contract DropboxV2 {
              _fileName,
              _fileDescription,
              block.timestamp,
-             payable(uploader)//payable(msg.sender)
+             payable(uploader)
         );
 
         emit FileUploaded(fileCount, _fileHash, _fileSize, _fileType, _fileName, _fileDescription, block.timestamp, payable(uploader));
+    }
+
+    function verifySignature(string memory _fileHash, uint8 v, bytes32 r, bytes32 s) internal pure returns (address) {
+        // Prefix the hash according to the Ethereum signed message prefix
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked(prefix, _fileHash));
+        
+        // Recover the signer address
+        address signer = ecrecover(ethSignedMessageHash, v, r, s);
+        require(signer != address(0), "Invalid signature");
+        return signer;
     }
 
 
