@@ -30,16 +30,41 @@ contract DropboxV2 {
         address payable uploader
     );
 
+    event FileDeleted(
+        uint fileId,
+        string fileHash,
+        address payable uploader,
+         uint deleteTime
+    );
+
     function getFileCount() public view returns (uint) {
         return fileCount;
     }
 
     function listFiles() public view returns (File[] memory) {
         uint count = getFileCount();
-        File[] memory allFiles = new File[](count);
+        File[] memory allFiles;// = new File[](count);
 
+        uint countNotDeleted = 0;
         for (uint i = 1; i <= count; i++) {
-            allFiles[i - 1] = files[i];
+            if (bytes(files[i].fileHash).length != 0) {
+                countNotDeleted++;
+            }
+        }
+
+        // retorn a empty array
+        if (countNotDeleted == 0) {
+            return new File[](0);
+        }
+
+        allFiles = new File[](countNotDeleted);
+        uint index = 0;
+        for (uint i = 1; i <= count; i++) {
+            if (bytes(files[i].fileHash).length != 0) {
+                allFiles[index] = files[i];
+                index++;
+            }
+            
         }
 
         return allFiles;
@@ -68,7 +93,8 @@ contract DropboxV2 {
         require(_fileSize>0);
 
         fileCount++;
-        files[fileCount] = File(fileCount, 
+        files[fileCount] = File(
+            fileCount, 
              _fileHash,
              _fileSize,
              _fileType,
@@ -81,6 +107,26 @@ contract DropboxV2 {
         emit FileUploaded(fileCount, _fileHash, _fileSize, _fileType, _fileName, _fileDescription, block.timestamp, payable(uploader));
     }
 
+    function deleteFile(
+        uint fileId,
+        uint8 v, 
+        bytes32 r, 
+        bytes32 s) public {
+
+        require(files[fileId].fileId != 0, "File does not exist");
+
+         // Verify the signature
+        address uploader = verifySignature(files[fileId].fileHash, v, r, s); 
+    
+        // Verifica que el archivo fue cargado por el remitente
+        require(files[fileId].uploader == payable(uploader), "Unauthorized");
+        
+        // Elimina el archivo del mapping
+        delete files[fileId];
+
+        emit FileDeleted(fileId, files[fileId].fileHash, payable(uploader), block.timestamp);
+    }
+
     function verifySignature(string memory _fileHash, uint8 v, bytes32 r, bytes32 s) internal pure returns (address) {
         // Prefix the hash according to the Ethereum signed message prefix
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
@@ -91,6 +137,4 @@ contract DropboxV2 {
         require(signer != address(0), "Invalid signature");
         return signer;
     }
-
-
 }

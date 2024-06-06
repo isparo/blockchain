@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web3.js y MetaMask SDK</title>
+    <script src="https://c0f4f41c-2f55-4863-921b-sdk-docs.github.io/cdn/metamask-sdk.js"></script>
+    <script>
+        const sdk = new MetaMaskSDK.MetaMaskSDK({
+          dappMetadata: {
+            name: "Pure JS example",
+            url: window.location.href //host,
+          },
+          logging: {
+            sdk: false,
+          }
+        });
+
+        
+      </script>
+      <script>
+
+setTimeout(() => {
+      // You can also access via window.ethereum.
+      const ethereum = window.ethereum;//sdk.getProvider();
+      ethereum.enable();
+      debugger;
+       ss = ethereum.request({ 
+                 method: 'eth_requestAccounts'})
+        .then(accounts => {
+            console.log('Cuenta conectada:', accounts[0]);
+
+            // Crear una instancia de Web3 utilizando MetaMask
+            const web3 = new Web3(window.ethereum);
+
+            // Resto del código...
+        })
+        .catch(error => {
+            console.error('Error al conectar MetaMask', error);
+        });
+    }, 3)
+        // debugger;
+        // // Verificar si MetaMask está instalado
+        // if (typeof window.ethereum !== 'undefined') {
+        //     // Solicitar acceso a la cuenta MetaMask
+        //     window.ethereum.request({ method: 'eth_requestAccounts' })
+        //         .then(accounts => {
+        //             console.log('Cuenta conectada:', accounts[0]);
+
+        //             // Crear una instancia de Web3 utilizando MetaMask
+        //             const web3 = new Web3(window.ethereum);
+
+        //             // Resto del código...
+        //         })
+        //         .catch(error => {
+        //             console.error('Error al conectar MetaMask', error);
+        //         });
+        // } else {
+        //     console.error('MetaMask no está instalado');
+        // }
+    </script>
+</head>
+<body>
+   
+    <!-- <button onclick="connect()">Connect</button>
+      
+      <button onclick="addEthereumChain()">ADD ETHEREUM CHAIN</button> -->
+</body>
+</html>
+
+
