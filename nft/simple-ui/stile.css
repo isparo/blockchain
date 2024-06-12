@@ -1,0 +1,58 @@
+body {
+    background-color: #c7d8f7; /* Azul pastel tierno */
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.header {
+    text-align: center;
+    padding: 20px 0;
+    background-color: white; /* Fondo blanco */
+    border-bottom: 2px solid black; /* Borde inferior negro */
+    margin-bottom: 5px;
+}
+
+.content {
+    padding: 20px 0;
+    background-color: #8cade9; /* Azul pastel tierno */
+    margin: 10px;
+    font-family: Arial, sans-serif;
+}
+
+.controll {
+    padding: 20px;
+    background-color: rgb(151, 196, 197);
+    font-family: Arial, sans-serif;
+    
+}
+
+.flex-container {
+    display: flex; /* Utilizamos Flexbox para el contenedor */
+}
+
+.nft-base {
+    width: 50%; /* Cada div ocupa el 50% del ancho del contenedor */
+    max-height: 600px; /* Tamaño máximo de 700px */
+    padding: 10px;
+    margin: 10px;
+    box-sizing: border-box; /* Incluimos padding en el ancho del elemento */
+    background-color: #b7ddb0; /* Color de fondo verde pastel */
+    margin-right: 10px; /* Margen derecho entre los divs */
+    overflow: auto; /* Agrega un desplazamiento de desbordamiento cuando el contenido exceda el tamaño máximo */
+}
+
+.nft-base h2 {
+    margin-top: 0; /* Elimina el margen superior del título */
+}
+
+#itemsList {
+    list-style-type: none; /* Elimina las viñetas de la lista */
+    padding: 0; /* Elimina el relleno predeterminado de la lista */
+}
+
+#itemsList li {
+    background-color: rgb(229, 167, 214); /* Color de fondo rosa tierno */
+    padding: 10px; /* Añade un relleno alrededor de cada elemento de la lista */
+    margin-bottom: 5px; /* Añade un margen inferior entre los elementos de la lista */
+}
+

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interact with NFT Marketplace</title>
+
+    <link rel="stylesheet" href="stile.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/ipfs-http-client/dist/index.min.js"></script>
+
+
+</head>
+<body>
+    <div class="header"> 
+        <h1>NFT Marketplace</h1>
+    </div>
+
+    <div class="content">
+        <div class="controll">
+            <button onclick="getAccounts()">Get Accounts</button>
+            <p>Accounts: <span id="accounts">N/A</span></p>
+    
+            <br>
+    
+            <div>
+                <input type="file" id="file-input" />
+                <button id="mintAndMakeItemBtn">Mint NFT</button>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class="nft-base">
+                <h2>Available NFTs</h2>
+                <ul id="itemsList"></ul>
+            </div>
+        
+            <div class="nft-base">
+                <h2>My NFTs</h2>
+            </div>
+        </div>
+    
+        
+    </div>
+    
+
+    <script>
+        let web3;
+        let marketPlaceContract;
+        let nftContract;
+        let accounts;
+        let secondAccount;
+        let priceInEth = 2;
+    
+        const nftAddress = '0xa683Ca84A9A48faAA988dF0d2c939186e35747A0';
+        const marketPlaceAddress = '0x228Dfb524755a3a361b3d6047D40C6bd787D61a9';
+
+        const client = IpfsHttpClient.create('http://localhost:5001/api/v0/add');
+
+
+
+        async function loadABI(contractName) {
+            try {
+                // 
+                const response = await fetch(`../artifacts/contracts/${contractName}.json`); // Ruta al archivo JSON del contrato
+                const data = await response.json();
+                return data.abi; // Retorna solo el ABI del contrato
+            } catch (error) {
+                console.error('Error loading ABI:', error);
+                return null;
+            }
+        }
+
+        const initializeWeb3 = async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                web3 = new Web3(window.ethereum);
+                await window.ethereum.enable();
+            } else if (typeof window.web3 !== 'undefined') {
+                web3 = new Web3(window.web3.currentProvider);
+            } else {
+                web3 = new Web3('http://127.0.0.1:7545'); // URL de Ganache
+            }
+        };
+
+        const getAccounts = async () => {
+            document.getElementById('accounts').innerText = '';
+            accounts = await web3.eth.getAccounts();
+            secondAccount = accounts[1];
+            document.getElementById('accounts').innerText = accounts[1];
+        };
+
+        const loadMarketplaceContractData = async () => {
+            const marketPlaceABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[],"name":"ReentrancyGuardReentrantCall","type":"error"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"itemId","type":"uint256"},{"indexed":true,"internalType":"address","name":"nft","type":"address"},{"indexed":false,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"price","type":"uint256"},{"indexed":true,"internalType":"address","name":"seller","type":"address"},{"indexed":true,"internalType":"address","name":"buyer","type":"address"}],"name":"Bought","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"itemId","type":"uint256"},{"indexed":true,"internalType":"address","name":"nft","type":"address"},{"indexed":false,"internalType":"uint256","name":"tokenId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"price","type":"uint256"},{"indexed":true,"internalType":"address","name":"seller","type":"address"}],"name":"Offered","type":"event"},{"inputs":[],"name":"feeAccount","outputs":[{"internalType":"address payable","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"feePercent","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_itemId","type":"uint256"}],"name":"getTotalPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"itemCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"items","outputs":[{"internalType":"uint256","name":"itemId","type":"uint256"},{"internalType":"contract IERC721","name":"nft","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"address payable","name":"seller","type":"address"},{"internalType":"bool","name":"sold","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"contract IERC721","name":"_nft","type":"address"},{"internalType":"uint256","name":"_tokenId","type":"uint256"},{"internalType":"uint256","name":"_price","type":"uint256"}],"name":"makeItem","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"_itemId","type":"uint256"}],"name":"purchaseItem","outputs":[],"stateMutability":"payable","type":"function"}]//await loadABI('Marketplace.sol/MarketPlace');
+            console.log(marketPlaceABI)
+
+            marketPlaceContract = new web3.eth.Contract(marketPlaceABI, marketPlaceAddress);
+        }
+
+        const loadNFTContractData = async () => {
+            const nftABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"address","name":"sender","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"address","name":"owner","type":"address"}],"name":"ERC721IncorrectOwner","type":"error"},{"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ERC721InsufficientApproval","type":"error"},{"inputs":[{"internalType":"address","name":"approver","type":"address"}],"name":"ERC721InvalidApprover","type":"error"},{"inputs":[{"internalType":"address","name":"operator","type":"address"}],"name":"ERC721InvalidOperator","type":"error"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"ERC721InvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"receiver","type":"address"}],"name":"ERC721InvalidReceiver","type":"error"},{"inputs":[{"internalType":"address","name":"sender","type":"address"}],"name":"ERC721InvalidSender","type":"error"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ERC721NonexistentToken","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"approved","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"owner","type":"address"},{"indexed":true,"internalType":"address","name":"operator","type":"address"},{"indexed":false,"internalType":"bool","name":"approved","type":"bool"}],"name":"ApprovalForAll","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"_fromTokenId","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"_toTokenId","type":"uint256"}],"name":"BatchMetadataUpdate","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"_tokenId","type":"uint256"}],"name":"MetadataUpdate","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":true,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"Transfer","type":"event"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"approve","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"balanceOf","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"dAppName","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getApproved","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"owner","type":"address"},{"internalType":"address","name":"operator","type":"address"}],"name":"isApprovedForAll","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_tokenURI","type":"string"}],"name":"mint","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"name","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"ownerOf","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"}],"name":"safeTransferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"operator","type":"address"},{"internalType":"bool","name":"approved","type":"bool"}],"name":"setApprovalForAll","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes4","name":"interfaceId","type":"bytes4"}],"name":"supportsInterface","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"symbol","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tokenCount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"tokenURI","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"from","type":"address"},{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"transferFrom","outputs":[],"stateMutability":"nonpayable","type":"function"}]
+            
+            console.log(nftABI)
+
+            nftContract = new web3.eth.Contract(nftABI, nftAddress);
+        }
+
+        async function getTokenImageURL(tokenId) {
+            let uri = await nftContract.methods.tokenURI(tokenId).call();
+            console.log("token uri")
+            console.log(uri)
+            
+            return uri;
+        }
+
+        const showAllItems = async () => {
+            const totalItems = await marketPlaceContract.methods.itemCount().call();
+            console.log("Total Items:", totalItems);
+
+            const itemsList = document.getElementById('itemsList');
+            itemsList.innerHTML = ''; // Clear previous items
+
+            for (let i = 1; i <= totalItems; i++) {
+                const item = await marketPlaceContract.methods.items(i).call();
+                console.log("Item", i, ":", item);
+
+                // Get image URL from IPFS (you need to implement this)
+
+                debugger;
+                const tUri = await getTokenImageURL(item.tokenId);
+                debugger;
+
+                // const imageUrl = "http://localhost:8080/ipfs/QmY3gasKv2LPYXphv5Jk7B9dzTZDoX79ppmmFCzrErwkBw"; //await getImageUrl(item.tokenId); // Function to get image URL from IPFS
+                const imageUrl = "http://localhost:8080/ipfs/" + tUri;
+                const itemPrice = web3.utils.fromWei(item.price, 'ether');
+
+                // Create list item with image and details
+                const listItem = document.createElement('li');
+                const image = document.createElement('img');
+                image.src = imageUrl;
+                image.alt = 'NFT image';
+                image.style.maxWidth = '200px';
+                image.style.maxHeight = '200px';
+                image.style.minWidth = '200px';
+                image.style.minHeight = '200px';
+                listItem.appendChild(image);
+                // listItem.appendChild(document.createTextNode(`Item ID: ${item.itemId}, Price: ${itemPrice} ETH, Seller: ${item.seller}`));
+
+                const paragraph = document.createElement('p');
+                paragraph.textContent = `Item ID: ${item.itemId}, Price: ${itemPrice} ETH, Seller: ${item.seller}`
+
+                listItem.appendChild(paragraph)
+                itemsList.appendChild(listItem);
+            }
+        }
+
+       
+        async function uploadNFTImageToIPFS () {
+            const fileInput = document.getElementById('file-input');
+            if (!fileInput.files.length) {
+                alert('Por favor, selecciona una imagen primero.');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            //const reader = new FileReader();
+            
+            const result =  await client.add(file)
+            console.log(result)
+
+            return result.path;
+        }
+
+         // Flow 1: Mint an NFT and make an item
+        async function mintAndMakeItem() {
+            try {
+
+                const feePercent = await marketPlaceContract.methods.feePercent().call();
+                console.log("feePercent:", feePercent);
+
+                const account = accounts[3];//(await window.web3.eth.getAccounts())[2]; // Using account number 2
+                console.log("Using account:", account);
+
+                // Load image to IPFS (you need to implement this part)
+                //await uploadToIPFS(); // Function to upload to IPFS
+                const ipfsHash = await uploadNFTImageToIPFS();//"QmY3gasKv2LPYXphv5Jk7B9dzTZDoX79ppmmFCzrErwkBw";
+
+                // Call mint function of SimpleNFS contract
+                const mintResult = await nftContract.methods.mint(ipfsHash).send({ from: account, gasLimit: 6721975, });
+                console.log("NFT Minted:", mintResult);
+
+                const tokenId = mintResult.events.Transfer.returnValues.tokenId;
+                const tid = web3.utils.toNumber(tokenId)
+                const priceInWei = web3.utils.toWei(priceInEth.toString(), 'ether');
+
+                // debugger;
+
+                // Primero, aprobar la transferencia del token al contrato del mercado
+                let res = await nftContract.methods.approve(marketPlaceAddress, tid).send({ from: account, gasLimit: 6721975, });
+                console.log(res);
+                // debugger;
+                
+                // Call makeItem function of MarketPlace contract
+                const makeItemResult = await marketPlaceContract.methods.makeItem(nftAddress, tid, priceInWei).send({ from: account, gasLimit: 6721975, });
+                console.log("Item Made:", makeItemResult);
+
+                showAllItems();
+
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+
+        const initialize = async () => {
+            await initializeWeb3();
+
+            //loadNFTContractData();
+            loadMarketplaceContractData();
+            loadNFTContractData();
+
+            showAllItems();
+        };
+
+        initialize();
+
+        document.getElementById('mintAndMakeItemBtn').addEventListener('click', mintAndMakeItem);
+
+    </script>
+</body>
+</html>
