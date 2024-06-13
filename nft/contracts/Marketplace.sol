@@ -97,6 +97,7 @@ contract MarketPlace is ReentrancyGuard {
         emit Bought(_itemId, address(item.nft), item.tokenId, item.price, item.seller, msg.sender);
     }
 
+
     function getTotalPrice(uint _itemId) view public returns(uint){
         return((items[_itemId].price*(100 + feePercent))/100);
     }

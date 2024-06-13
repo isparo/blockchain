@@ -39,6 +39,7 @@
         
             <div class="nft-base">
                 <h2>My NFTs</h2>
+                <button onclick="showMyItems()">Reload NFT</button>
             </div>
         </div>
     
@@ -110,8 +111,16 @@
             let uri = await nftContract.methods.tokenURI(tokenId).call();
             console.log("token uri")
             console.log(uri)
-            
             return uri;
+        }
+
+        const showMyItems = async () => {
+            debugger;
+            const account = accounts[4];
+            
+            
+
+            debugger;
         }
 
         const showAllItems = async () => {
@@ -126,11 +135,8 @@
                 console.log("Item", i, ":", item);
 
                 // Get image URL from IPFS (you need to implement this)
-
-                debugger;
                 const tUri = await getTokenImageURL(item.tokenId);
-                debugger;
-
+                
                 // const imageUrl = "http://localhost:8080/ipfs/QmY3gasKv2LPYXphv5Jk7B9dzTZDoX79ppmmFCzrErwkBw"; //await getImageUrl(item.tokenId); // Function to get image URL from IPFS
                 const imageUrl = "http://localhost:8080/ipfs/" + tUri;
                 const itemPrice = web3.utils.fromWei(item.price, 'ether');
@@ -150,12 +156,46 @@
                 const paragraph = document.createElement('p');
                 paragraph.textContent = `Item ID: ${item.itemId}, Price: ${itemPrice} ETH, Seller: ${item.seller}`
 
+                const button = document.createElement('button');
+                button.textContent = 'Buy NFT';
+                
+                button.addEventListener('click',async function () {
+                    const account = accounts[4];
+                    console.log("Using account:", account);
+                    console.log("ItemID:", item.itemId);
+
+                    itId = web3.utils.toNumber(item.itemId)
+                    // Primero, aprobar la transferencia del token al contrato del mercado
+                    const tid = web3.utils.toNumber(item.tokenId);
+                    //let res = await nftContract.methods.approve(marketPlaceAddress, tid).send({ from: account, gasLimit: 6721975, });
+                    //console.log(res);
+                    totalPriceInWei = await marketPlaceContract.methods.getTotalPrice(itId).call();//send({ from: account, gasLimit: 6721975,});
+                    console.log(totalPriceInWei)
+
+                    buyNFTResult = await marketPlaceContract.methods.purchaseItem(itId).send({ from: account, gasLimit: 6721975, value: totalPriceInWei});
+
+                    showAllItems();
+                } );
+
+                button.style.display = 'block'; // Mostrar como bloque
+                button.style.width = '80px'; // Ancho de 80px
+                button.style.height = '35px'; // Alto de 35px
+                button.style.backgroundColor = 'green'; // Color de fondo verde
+                button.style.color = 'white'; // Color del texto blanco
+                // button.style.border = 'none'; // Sin borde
+
+                
+                if (!item.sold) {
+                    listItem.appendChild(button)
+                }
+                
+
                 listItem.appendChild(paragraph)
                 itemsList.appendChild(listItem);
             }
         }
 
-       
+
         async function uploadNFTImageToIPFS () {
             const fileInput = document.getElementById('file-input');
             if (!fileInput.files.length) {
@@ -179,7 +219,7 @@
                 const feePercent = await marketPlaceContract.methods.feePercent().call();
                 console.log("feePercent:", feePercent);
 
-                const account = accounts[3];//(await window.web3.eth.getAccounts())[2]; // Using account number 2
+                const account = accounts[1];
                 console.log("Using account:", account);
 
                 // Load image to IPFS (you need to implement this part)
@@ -194,12 +234,9 @@
                 const tid = web3.utils.toNumber(tokenId)
                 const priceInWei = web3.utils.toWei(priceInEth.toString(), 'ether');
 
-                // debugger;
-
                 // Primero, aprobar la transferencia del token al contrato del mercado
                 let res = await nftContract.methods.approve(marketPlaceAddress, tid).send({ from: account, gasLimit: 6721975, });
                 console.log(res);
-                // debugger;
                 
                 // Call makeItem function of MarketPlace contract
                 const makeItemResult = await marketPlaceContract.methods.makeItem(nftAddress, tid, priceInWei).send({ from: account, gasLimit: 6721975, });
@@ -220,6 +257,7 @@
             loadNFTContractData();
 
             showAllItems();
+            //showMyItems();
         };
 
         initialize();
