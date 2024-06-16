@@ -56,3 +56,15 @@ body {
     margin-bottom: 5px; /* Añade un margen inferior entre los elementos de la lista */
 }
 
+#myItemsList {
+    list-style-type: none; /* Elimina las viñetas de la lista */
+    padding: 0; /* Elimina el relleno predeterminado de la lista */
+}
+
+#myItemsList li {
+    /* background-color: rgb(229, 167, 214); Color de fondo rosa tierno */
+    padding: 10px; /* Añade un relleno alrededor de cada elemento de la lista */
+    margin: 5px; /* Añade un margen inferior entre los elementos de la lista */
+    display: inline;
+}
+

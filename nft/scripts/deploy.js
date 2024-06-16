@@ -11,7 +11,9 @@ async function main() {
     const marketplace = await MarketPlace.deploy();
     const simpleNFS = await SimpleNFS.deploy();
 
+    console.log('marketplace.address:')
     console.log(marketplace.address)
+    console.log('simpleNFS.address')
     console.log(simpleNFS.address)
 }
   
