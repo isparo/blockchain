@@ -74,8 +74,8 @@
       "artifacts": []
     },
     "/Users/israeljosueparrarosales/blockchain/nft/contracts/Marketplace.sol": {
-      "lastModificationDate": 1718316305376,
-      "contentHash": "7f6247b24026af5c481de9f3d4384ba1",
+      "lastModificationDate": 1718640739743,
+      "contentHash": "0e11f052a886ec048060de9bb572f99a",
       "sourceName": "contracts/Marketplace.sol",
       "solcConfig": {
         "version": "0.8.20",

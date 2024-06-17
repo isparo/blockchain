@@ -125,6 +125,32 @@ contract MarketPlace is ReentrancyGuard {
         return allTokens;
     }
 
+    function soldMyToken(uint _itemId, uint _price, IERC721 _nft)  external nonReentrant {
+        require(_price > 0, "Price must be greater than zero");
+        require(items[_itemId].itemId > 0, "Item should exist");
+
+        // validate, the token owner is the same person that is executing the contract
+         address tokenOwner = _nft.ownerOf(items[_itemId].tokenId);
+         require(tokenOwner == msg.sender, "You are not the owner");
+
+         Item storage item = items[_itemId];
+         item.seller = payable(msg.sender);
+         item.sold = false;
+         item.price = _price;
+
+         // transfer nft
+        _nft.transferFrom(msg.sender, address(this), item.tokenId);
+
+         // emit the event
+        emit Offered(
+            item.itemId,
+            address(_nft),
+            item.tokenId,
+            _price,
+            msg.sender
+        );
+    }
+
     function getTotalPrice(uint _itemId) view public returns(uint){
         return((items[_itemId].price*(100 + feePercent))/100);
     }
