@@ -1,9 +1,6 @@
 const { expect } = require("chai"); 
 const { ethers } = require('hardhat');
 
-// const { assert } = import('chai'); // Importa assert desde Chai
-
-
 const toWei = (num) => ethers.utils.parseEther(num.toString());
 const fromWei = (num) => ethers.utils.formatEther(num);
 
