@@ -31,8 +31,8 @@ describe("NFTMarketplace", function () {
         marketplace = await MarketPlace.deploy();
         nft = await SimpleNFS.deploy();
 
-        console.log(marketplace.target)
-        console.log(nft.target)
+        console.log(marketplace.address)
+        console.log(nft.address)
     });
 
     describe("Deployment", function () {
@@ -66,53 +66,45 @@ describe("NFTMarketplace", function () {
     });
 
     describe("Making marketplace items", function () {
+        let price = 1
+        let result 
         beforeEach(async function () {
           // addr1 mints an nft
           await nft.connect(addr1).mint(URI)
-
           // addr1 approves marketplace to spend nft
-          await nft.connect(addr1).setApprovalForAll(marketplace.target, true)
+          await nft.connect(addr1).setApprovalForAll(marketplace.address, true)
         })
     
     
         it("Should track newly created item, transfer NFT from seller to marketplace and emit Offered event", async function () {
           // addr1 offers their nft at a price of 1 ether
-
-        //   const price = 2
-        //   let result 
-
-          let pri = ethers.utils.parseEther(price);
-          console.log(pri)
-
-          await expect(marketplace.connect(addr1).makeItem(nft.target, 1 , toWei(2)))
+          await expect(marketplace.connect(addr1).makeItem(nft.address, 1 , toWei(price)))
             .to.emit(marketplace, "Offered")
             .withArgs(
               1,
-              nft.target,
+              nft.address,
               1,
-              toWei(2),
+              toWei(price),
               addr1.address
             )
-
-          //Owner of NFT should now be the marketplace
-          expect(await nft.ownerOf(1)).to.equal(marketplace.target);
+          // Owner of NFT should now be the marketplace
+          expect(await nft.ownerOf(1)).to.equal(marketplace.address);
           // Item count should now equal 1
-        //   expect(await marketplace.itemCount()).to.equal(1)
-        //   // Get item from items mapping then check fields to ensure they are correct
-        //   const item = await marketplace.items(1)
-        //   expect(item.itemId).to.equal(1)
-        //   expect(item.nft).to.equal(nft.target)
-        //   expect(item.tokenId).to.equal(1)
-        //   expect(item.price).to.equal(toWei(price))
-        //   expect(item.sold).to.equal(false)
+          expect(await marketplace.itemCount()).to.equal(1)
+          // Get item from items mapping then check fields to ensure they are correct
+          const item = await marketplace.items(1)
+          expect(item.itemId).to.equal(1)
+          expect(item.nft).to.equal(nft.address)
+          expect(item.tokenId).to.equal(1)
+          expect(item.price).to.equal(toWei(price))
+          expect(item.sold).to.equal(false)
         });
     
         it("Should fail if price is set to zero", async function () {
           await expect(
-            marketplace.connect(addr1).makeItem(nft.target, 1, 0)
+            marketplace.connect(addr1).makeItem(nft.address, 1, 0)
           ).to.be.revertedWith("Price must be greater than zero");
-        });
-    
-      });
+        });    
+    });
 
 });
