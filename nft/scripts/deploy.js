@@ -1,8 +1,8 @@
 async function main() {
     const [deployer] = await ethers.getSigners();
 
-    console.log("Deploying contracts with the account:", deployer.address);
-    console.log("Account balance:", (await deployer.getBalance()).toString());
+  console.log("Deploying contracts with the account:", deployer.address);
+  
 
     // Get the ContractFactories and Signers here.
     const SimpleNFS = await ethers.getContractFactory("SimpleNFS");
@@ -12,9 +12,9 @@ async function main() {
     const simpleNFS = await SimpleNFS.deploy();
 
     console.log('marketplace.address:')
-    console.log(marketplace.address)
+    console.log(marketplace.target)
     console.log('simpleNFS.address')
-    console.log(simpleNFS.address)
+    console.log(simpleNFS.target)
 }
   
 main()
