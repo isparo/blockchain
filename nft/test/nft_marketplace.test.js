@@ -210,6 +210,19 @@ describe("NFTMarketplace", function () {
             expect((await marketplace.items(1)).price).to.equal(toWei(3))
             
         });
+    });
 
+    describe("listing my tokens", function () {
+        beforeEach(async function() {
+            
+        });
+
+        it("It should list all the tokes owned by an account", async function() {
+
+        });
+
+        it("It should list an empty list", async function() {
+
+        });
     });
 });
