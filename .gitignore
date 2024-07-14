@@ -1,3 +1,6 @@
 nft/node_modules
 nft/build
 
+*/node_modules
+*/build
+
