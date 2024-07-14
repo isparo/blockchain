@@ -1,0 +1,12 @@
+{
+  "name": "daapmazon",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "hardhat": "^2.22.5"
+  },
+  "devDependencies": {
+    
+  }
+}
