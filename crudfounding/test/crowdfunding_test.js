@@ -128,6 +128,34 @@ describe("Crowdfunding", () => {
             }
             
         });
+
+        it("should update the campaign information", async () => {
+            transaction = await crowdfunding.connect(user).createCampaign(
+                "test campaign",
+                "test description",
+                toWei(4)
+            );
+            await transaction.wait()
+
+            campaigns = await crowdfunding.connect(user).getAllCampaigns();
+            let campaign = campaigns[0];
+
+            donationAmount = toWei(3);
+            await crowdfunding.connect(doner).addDonative(campaign.Id, { value: donationAmount });
+
+            await crowdfunding.connect(user).updateCampaign(
+                campaign.Id, 
+                "edited title",
+                "edited description",
+                toWei(5));
+            
+            updatedCampaigns = await crowdfunding.connect(user).getAllCampaigns();
+            let updatedCampaign = updatedCampaigns[0];
+
+            expect(updatedCampaign.title).to.equal("edited title");
+            expect(updatedCampaign.description).to.equal("edited description");
+            expect(updatedCampaign.expectedAmount).to.equal(toWei(5));
+        })
     });
 
     describe("Donatives", () => {

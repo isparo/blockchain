@@ -116,7 +116,40 @@ contract Crowdfunding {
                 require(success, "Transfer failed");
             }
 
+            if (currentDate >= campaignInf.endDate && campaignInf.amount < campaignInf.expectedAmount) {
+                campaignInf.isActive = false;
+
+                //refund donatives
+                Donative[] memory donativesList = donatives[campaignInf.Id];
+
+                for (uint256 d = 0; d < donativesList.length; d++) {
+                     address payable recipientPayable = payable(donativesList[d].donner);
+                    (bool ss, ) = recipientPayable.call{value: donativesList[d].quantity}("");
+                    require(ss, "Transfer failed");
+                }
+            }
         }
+    }
+
+    function updateCampaign(
+        bytes32 campaignId, 
+        string memory _title,
+        string memory _description,
+        uint256 _expectedAmount) public {
+
+        require(campaignId != bytes32(0), "Campaign ID cannot be zero");
+        require(campaigns[campaignId].Id != bytes32(0x0000000000000000000000000000000000000000000000000000000000000000), "Invalid ID");
+        require(!campaigns[campaignId].completed, "Campaign already reach the expected amount");
+        require(campaigns[campaignId].isActive, "Campaign is inactive");
+        require(bytes(_title).length != 0, "title can not be empty");
+        require(bytes(_description).length != 0, "description can not be empty");
+        require(_expectedAmount > 0, "amount can not be negative");
+        require(_expectedAmount > campaigns[campaignId].amount, "Expected amount can not be less than the current ammount");
+
+        //me quedé en esta funcion
+        campaigns[campaignId].title = _title;
+        campaigns[campaignId].description = _description;
+        campaigns[campaignId].expectedAmount = _expectedAmount;
     }
 
     function getAllCampaigns() public view returns (Campaign[] memory) {
