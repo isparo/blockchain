@@ -39,40 +39,6 @@
         "Crowdfunding"
       ]
     },
-    "/Users/israeljosueparrarosales/blockchain/crudfounding/contracts/nft_generator.sol": {
-      "lastModificationDate": 1720715630856,
-      "contentHash": "2a57232f328600eb7eae499f154cf709",
-      "sourceName": "contracts/nft_generator.sol",
-      "solcConfig": {
-        "version": "0.8.24",
-        "settings": {
-          "evmVersion": "paris",
-          "optimizer": {
-            "enabled": false,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.24"
-      ],
-      "artifacts": []
-    },
     "/Users/israeljosueparrarosales/blockchain/crudfounding/contracts/utils.sol": {
       "lastModificationDate": 1720794518511,
       "contentHash": "4f9039578c4695677b24303c8a881a39",
@@ -108,6 +74,40 @@
       "artifacts": [
         "Utils"
       ]
+    },
+    "/Users/israeljosueparrarosales/blockchain/crudfounding/contracts/nft_generator.sol": {
+      "lastModificationDate": 1720715630856,
+      "contentHash": "2a57232f328600eb7eae499f154cf709",
+      "sourceName": "contracts/nft_generator.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": []
     }
   }
 }

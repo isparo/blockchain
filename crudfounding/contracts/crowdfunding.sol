@@ -146,7 +146,6 @@ contract Crowdfunding {
         require(_expectedAmount > 0, "amount can not be negative");
         require(_expectedAmount > campaigns[campaignId].amount, "Expected amount can not be less than the current ammount");
 
-        //me quedé en esta funcion
         campaigns[campaignId].title = _title;
         campaigns[campaignId].description = _description;
         campaigns[campaignId].expectedAmount = _expectedAmount;
