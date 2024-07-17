@@ -292,6 +292,7 @@ describe("Crowdfunding", () => {
             expect(updatedCampaigns[0].completed).to.equal(true);
             expect(updatedCampaigns[0].isActive).to.equal(true);
             
+            // make the payments
             await crowdfunding.connect(deployer).reviewCampaignsJob();
 
             campaignsReviewed = await crowdfunding.connect(user).getAllCampaigns();
@@ -302,7 +303,6 @@ describe("Crowdfunding", () => {
             expect(campaignUserBalanceAfter).to.be.greaterThan(campaignUserBalanceBefore);
 
             const balanceAfter = await ethers.provider.getBalance(crowdfunding.target);
-            
             feeResult = (25 * 3) / 100
             expect(balanceAfter).to.equal(toWei(feeResult));
             expect(balanceAfter).to.be.lessThan(balanceBefore);
