@@ -112,7 +112,13 @@ contract Crowdfunding {
 
                 campaignInf.isActive = false;
 
-                (bool success, ) = campaignInf.owner.call{value: campaignInf.amount}("");
+                // Calculate the fee amount
+                uint256 feeAmount = campaignInf.amount * fee / 100;
+
+                // Deduct the fee from the campaign amount
+                uint256 netAmount = campaignInf.amount - feeAmount;
+
+                (bool success, ) = campaignInf.owner.call{value: netAmount}("");
                 require(success, "Transfer failed");
             }
 

@@ -281,13 +281,12 @@ describe("Crowdfunding", () => {
         });
 
         it("should review the campaigns and do the payments", async () => {
-
             const campaignUserBalanceBefore = await ethers.provider.getBalance(user.address);
             await crowdfunding.connect(doner).addDonative(campaignID, { value: donationAmount });
 
             const balanceBefore = await ethers.provider.getBalance(crowdfunding.target);
             expect(balanceBefore).to.equal(toWei(25));
-            
+
             updatedCampaigns = await crowdfunding.connect(user).getAllCampaigns();
 
             expect(updatedCampaigns[0].completed).to.equal(true);
@@ -303,7 +302,9 @@ describe("Crowdfunding", () => {
             expect(campaignUserBalanceAfter).to.be.greaterThan(campaignUserBalanceBefore);
 
             const balanceAfter = await ethers.provider.getBalance(crowdfunding.target);
-            expect(balanceAfter).to.equal(toWei(0));
+            
+            feeResult = (25 * 3) / 100
+            expect(balanceAfter).to.equal(toWei(feeResult));
             expect(balanceAfter).to.be.lessThan(balanceBefore);
         });
     });
