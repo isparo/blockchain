@@ -42,7 +42,13 @@ contract Crowdfunding {
     mapping(bytes32 => Donative[]) private donatives;
 
     // events
-    event CampaignCreatedEvent();
+    event CampaignCreatedEvent(
+        bytes32 id,
+        string _title,
+        string _description,
+        uint256 _expectedAmount,
+        address _campaignOwner);
+
     event CampaignUpdatedEvent();
     event DonativeAddedEvent();
     event CampaignReviewEvent();
@@ -89,6 +95,8 @@ contract Crowdfunding {
         campaigns[cId] = campaign;
         ownerCampaigns[msg.sender].push(cId);
         campaignsIDs.push(cId);
+
+        emit CampaignCreatedEvent(cId, _title, _description, _expectedAmount, msg.sender);
     }
 
     function addDonative(bytes32 campaignId) public payable {

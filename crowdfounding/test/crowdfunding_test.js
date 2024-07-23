@@ -43,6 +43,7 @@ describe("Crowdfunding", () => {
                 "test description",
                 toWei(25)
             );
+            expect(transaction).to.emit(crowdfunding, "CampaignCreatedEvent");
 
             const receipt = await transaction.wait()
             const gasUsed = receipt.gasUsed;
