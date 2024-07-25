@@ -28,7 +28,7 @@ contract Crowdfunding {
     struct Donative {
         address donner;
         uint256 quantity;
-        uint256 endDate;
+        uint256 donativeDate;
     }
 
     // stiore the campaigs
@@ -50,10 +50,37 @@ contract Crowdfunding {
         address _campaignOwner);
 
     event CampaignUpdatedEvent();
-    event DonativeAddedEvent();
-    event CampaignReviewEvent();
+    
+    event DonativeAddedEvent(
+        bytes32 campaignId,
+        address donner,
+        uint256 quantity,
+        uint256 donativeDate);
 
+    
+    
+    event CampaignReviewEvent(
+         bytes32 id,
+         uint256 paymentDate,
+         uint256 expectedAmount,
+         uint256 amount,
+        address campaignOwner);
 
+    
+    
+    
+    event CampaignCompletedEvent(
+        bytes32 campaignId,
+        uint256 compledDate);
+    
+    event CaimpaignDonativeRefund(
+        bytes32 id,
+        address donner,
+        uint256 quantity,
+        uint256 refoundDate
+    );
+    
+    
     // constructor
     constructor(address _certificateNFTs) {
         fee = 3;
@@ -103,23 +130,34 @@ contract Crowdfunding {
         require(msg.value > 0, "Incorrect donative");
         require(msg.value <= msg.sender.balance, "Insufficient balance for donation");
         require(campaignId != bytes32(0), "Campaign ID cannot be zero");
-        require(!campaigns[campaignId].completed, "Campaign already reach the expected amount");
-        require(campaigns[campaignId].Id != bytes32(0x0000000000000000000000000000000000000000000000000000000000000000), "Invalid ID");
 
-        Donative memory donative = Donative(
+        Campaign storage campaignInf = campaigns[campaignId];
+        
+        require(!campaignInf.completed, "Campaign already reach the expected amount");
+        require(campaignInf.Id != bytes32(0x0000000000000000000000000000000000000000000000000000000000000000), "Invalid ID");
+
+        uint256 donativeDate = block.timestamp;
+        donatives[campaignId].push(Donative(
             msg.sender,
             msg.value,
-            block.timestamp
-        );
-
-        donatives[campaignId].push(donative);
+            donativeDate
+        ));
         
-        Campaign storage campaignInf = campaigns[campaignId];
         campaignInf.amount += msg.value;
 
         if (campaignInf.amount >= campaignInf.expectedAmount) {
             campaignInf.completed = true;
+            
+            emit CampaignCompletedEvent(
+                campaignInf.Id,
+                donativeDate);
         }
+
+        emit DonativeAddedEvent(
+            campaignInf.Id,
+            msg.sender,
+            msg.value,
+            donativeDate);
     }
 
     function reviewCampaignsJob() public onlyOwner{
@@ -127,44 +165,71 @@ contract Crowdfunding {
 
         for (uint256 i = 0; i < campaignsIDs.length; i++) {
             Campaign storage campaignInf = campaigns[campaignsIDs[i]];
-
             if (currentDate >= campaignInf.endDate || 
                 campaignInf.amount >= campaignInf.expectedAmount) {
-
                 campaignInf.isActive = false;
-
                 // Calculate the fee amount
                 uint256 feeAmount = (campaignInf.amount * fee) / 100;
-
                 // Deduct the fee from the campaign amount
                 uint256 netAmount = campaignInf.amount - feeAmount;
-
-                (bool success, ) = campaignInf.owner.call{value: netAmount}("");
-                require(success, "Transfer failed");
-
+                // send payment to the campaign owner
+                payToCampaignOwner(netAmount, campaignInf.owner);
+                // pay to platform owner
+                payToPlatformOwner(feeAmount);
                 // assign the certificates to thaks the donative
-                Donative[] memory donativesList = donatives[campaignInf.Id];
-                for (uint256 d = 0; d < donativesList.length; d++) {
-                    string memory tokenURI = "some-value-here";
+                generateDonativeCertificate(campaignInf.Id, campaignInf.title);
 
-                    uint256 tokenId = certificateNFT.mint(donativesList[d].donner, tokenURI);
-                    certificateNFT.setCertificates(donativesList[d].donner, tokenId, tokenURI, campaignInf.title);
-                }
+                emit CampaignReviewEvent(
+                    campaignInf.Id,
+                    block.timestamp,
+                    campaignInf.expectedAmount,
+                    campaignInf.amount,
+                    campaignInf.owner);
             }
 
             if (currentDate >= campaignInf.endDate && campaignInf.amount < campaignInf.expectedAmount) {
                 campaignInf.isActive = false;
-
+                campaignInf.completed = true;
                 //refund donatives
                 Donative[] memory donativesList = donatives[campaignInf.Id];
-
                 for (uint256 d = 0; d < donativesList.length; d++) {
-                     address payable recipientPayable = payable(donativesList[d].donner);
-                    (bool ss, ) = recipientPayable.call{value: donativesList[d].quantity}("");
-                    require(ss, "Transfer failed");
+                    refundDonatives(donativesList[d].donner, donativesList[d].quantity);
+                    
+                    emit CaimpaignDonativeRefund (
+                        campaignInf.Id,
+                        donativesList[d].donner,
+                        donativesList[d].quantity,
+                        block.timestamp
+                    );
                 }
             }
         }
+    }
+
+    function refundDonatives(address donner, uint256 donative) internal{
+        address payable recipientPayable = payable(donner);
+        (bool ss, ) = recipientPayable.call{value: donative}("");
+        require(ss, "Transfer failed");
+    }
+
+    function payToCampaignOwner(uint256 netAmount, address campaignOwner) internal {
+        (bool success, ) = campaignOwner.call{value: netAmount}("");
+        require(success, "Transfer failed");
+    }
+
+    function payToPlatformOwner(uint256 feeAmount) internal {
+            (bool success, ) = platformOwner.call{value: feeAmount}("");
+            require(success, "Transfer failed");
+    }
+
+    function generateDonativeCertificate(bytes32 campaignId, string memory campaignTitle) internal {
+            Donative[] memory donativesList = donatives[campaignId];
+            for (uint256 d = 0; d < donativesList.length; d++) {
+                string memory tokenURI = "some-value-here";
+
+                uint256 tokenId = certificateNFT.mint(donativesList[d].donner, tokenURI);
+                certificateNFT.setCertificates(donativesList[d].donner, tokenId, tokenURI, campaignTitle);
+            }
     }
 
     function updateCampaign(
@@ -178,6 +243,8 @@ contract Crowdfunding {
         Campaign storage campaignRecord = campaigns[campaignId];
 
         require(campaignRecord.Id != bytes32(0x0000000000000000000000000000000000000000000000000000000000000000), "Invalid ID");
+        
+        require(campaignRecord.owner == msg.sender, "Invalid owner to update the campaign");
         require(!campaignRecord.completed, "Campaign already reach the expected amount");
         require(campaignRecord.isActive, "Campaign is inactive");
         require(bytes(_title).length != 0, "title can not be empty");

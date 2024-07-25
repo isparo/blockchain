@@ -41,7 +41,7 @@ describe("Crowdfunding", () => {
             transaction = await crowdfunding.connect(user).createCampaign(
                 "test campaign",
                 "test description",
-                toWei(25)
+                toWei(2)
             );
             expect(transaction).to.emit(crowdfunding, "CampaignCreatedEvent");
 
@@ -68,7 +68,7 @@ describe("Crowdfunding", () => {
             transaction = await crowdfunding.connect(user).createCampaign(
                 "test campaign",
                 "test description",
-                toWei(25),
+                toWei(2),
                 {gasLimit: 6721975}
             );
             await transaction.wait()
@@ -76,7 +76,7 @@ describe("Crowdfunding", () => {
             transaction = await crowdfunding.connect(user).createCampaign(
                 "test campaign 2",
                 "test description 2",
-                toWei(25),
+                toWei(2),
                 {gasLimit: 6721975}
             );
             await transaction.wait()
@@ -89,7 +89,7 @@ describe("Crowdfunding", () => {
             transaction = await crowdfunding.connect(user).createCampaign(
                 "test campaign",
                 "test description",
-                toWei(25)
+                toWei(2)
             );
             await transaction.wait()
             campaigns = await crowdfunding.connect(user).getAllCampaigns();
@@ -167,6 +167,28 @@ describe("Crowdfunding", () => {
             expect(updatedCampaign.description).to.equal("edited description");
             expect(updatedCampaign.expectedAmount).to.equal(toWei(5));
         })
+
+        it("should fails to update a campaign when is not the owner of the campaign", async () => {
+            try {
+                transaction = await crowdfunding.connect(user).createCampaign(
+                    "test campaign",
+                    "test description",
+                    toWei(4)
+                );
+                await transaction.wait()
+    
+                campaigns = await crowdfunding.connect(user).getAllCampaigns({gasLimit: 6721975});
+                let campaign = campaigns[0];
+
+                await crowdfunding.connect(doner).updateCampaign(
+                    campaign.Id, 
+                    "edited title",
+                    "edited description",
+                    toWei(5), {gasLimit: 6721975});
+            } catch(error) {
+                expect(error.message.includes("Invalid owner to update the campaign")).to.equal(true)
+            }
+        });
     });
 
     describe("Donatives", () => {
@@ -177,7 +199,7 @@ describe("Crowdfunding", () => {
             transaction = await crowdfunding.connect(user).createCampaign(
                 "test campaign",
                 "test description",
-                toWei(25)
+                toWei(2)
             );
             await transaction.wait()
 
@@ -188,14 +210,16 @@ describe("Crowdfunding", () => {
         });
 
         it("should add a donative", async () => {
-            const donationAmount = toWei(2);
+            const donationAmount = toWei(1);
 
             const balanceBefore = await ethers.provider.getBalance(crowdfunding.target);
             expect(balanceBefore).to.equal(toWei(0));
 
             const donorBalanceBefore = await ethers.provider.getBalance(doner.address);
             
-            await crowdfunding.connect(doner).addDonative(campaignID, { value: donationAmount, gasLimit: 6721975 });
+            donativeTransaction = await crowdfunding.connect(doner).addDonative(campaignID, { value: donationAmount, gasLimit: 6721975 });
+            expect(donativeTransaction).to.emit(crowdfunding, "DonativeAddedEvent");
+            expect(donativeTransaction).to.emit(crowdfunding, "CampaignCompletedEvent");
             
             const balanceAfter = await ethers.provider.getBalance(crowdfunding.target);
             expect(balanceAfter).to.equal(donationAmount);
@@ -213,7 +237,7 @@ describe("Crowdfunding", () => {
         });
 
         it("should add a donative and mark as a completed the campaign", async () => {
-            const donationAmount = toWei(26);
+            const donationAmount = toWei(10);
 
             const balanceBefore = await ethers.provider.getBalance(crowdfunding.target);
             expect(balanceBefore).to.equal(toWei(0));
@@ -239,7 +263,7 @@ describe("Crowdfunding", () => {
 
         it("should fails when the campaign reached the expected amount", async () => {
             try {
-                const donationAmount = toWei(26);
+                const donationAmount = toWei(3);
 
                 const balanceBefore = await ethers.provider.getBalance(crowdfunding.target);
                 expect(balanceBefore).to.equal(toWei(0));
@@ -315,7 +339,7 @@ describe("Crowdfunding", () => {
 
             const balanceAfter = await ethers.provider.getBalance(crowdfunding.target);
             feeResult = (2 * 3) / 100
-            expect(balanceAfter).to.equal(toWei(feeResult));
+            expect(balanceAfter).to.equal(toWei(0));
             expect(balanceAfter).to.be.lessThan(balanceBefore);
 
             // validate if all the tokens were created
@@ -336,7 +360,6 @@ describe("Crowdfunding", () => {
 
             const nftContractBalance = await certificateNFT.balanceOf(certificateNFT.target);
             expect(nftContractBalance).to.equal(0);
-
         });
     });
 
